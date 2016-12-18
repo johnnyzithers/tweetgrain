@@ -17,22 +17,17 @@ io.sockets.on("connection",function(socket){
     }
     // sending data to the client , this triggers a message event at the client side 
     socket.send(JSON.stringify('Socket.io Connection with the client established')); 
-
     socket.on("message",function(data){        
-    
-        data = JSON.parse(data);
 
+        data = JSON.parse(data);
           if (data.mood == "positive"){
-            
-            pitch = (Math.random()*880) + 440;
+
+            pitch = (Math.random()*100) + 100;
             dens = (Math.random()*10) + 3;
             pan = (Math.random());
             dur = (Math.random()*1) + 1;
-
             console.log("+++++++++++++++++++++");
             triggerNote(dur, dens, pitch, pan, 'pos');
-
-
           }
           if (data.mood == "negative"){
 
@@ -40,10 +35,8 @@ io.sockets.on("connection",function(socket){
             dens = (Math.random()*50) + 10;
             pan = (Math.random());
             dur = (Math.random()*10) + 2;
-
             console.log("---------------------");
             triggerNote(dur, dens, pitch, pan, 'neg');
-
           }
 
         var ack_to_client = {
@@ -51,37 +44,15 @@ io.sockets.on("connection",function(socket){
         }
         socket.send(JSON.stringify(ack_to_client));
     });
-
-
-     socket.on('mouse',
-          function(data) {
-            // Data comes in as whatever was sent, including objects
-            console.log("Received: 'mouse' " + data.x + " " + data.y);
-          
-            // Send it to all other clients
-            socket.broadcast.emit('mouse', data);
-            
-            // This is a way to send to everyone including sender
-            io.sockets.emit('message', "this goes to everyone");
-
-          }
-        );
-
  
     socket.on('disconnect', function () {
         console.log("disconnecting!");
     });
 });
 
-
-
 const csound = require('csound-api');
 const Csound = csound.Create();
 csound.SetOption(Csound, '--output=dac');
-
-
-
-
 csound.CompileOrc(Csound, `
 
 0dbfs  = 1 
@@ -117,7 +88,7 @@ instr 2
       
   icps     init      cpspch(p4)                  ; Get target pitch from score event
   iportime init      abs(p3)/7                   ; Portamento time dep on note length
-  iamp0    = 0.9                                ; Set default amps
+  iamp0    = 0.9                                 ; Set default amps
   ipan     = p5
 
  ; Now do amp from the set values:
@@ -125,10 +96,10 @@ instr 2
   kamp   expseg .001, p3/2, .5, p3/5, .0001 ;a swell in amplitude
 
   ;printk 0.5, kamp
-  kcps     init      icps                        ; Init pitch for untied note
-  kcps     port      icps, iportime, icps        ; Drift towards target pitch
+  kcps     init      icps                         ; Init pitch for untied note
+  kcps     port      icps, iportime, icps         ; Drift towards target pitch
 
-  kpw      oscil     kamp, rnd(1), 1, rnd(.7)      ; A simple triangle-saw oscil
+  kpw      oscil     kamp, rnd(1), 1, rnd(.7)     ; A simple triangle-saw oscil
   ar       vco       kamp, p4, 3, kpw+.5, 1 
 
   aL = ar*ipan
@@ -168,7 +139,6 @@ endin
 csound.ReadScore(Csound, `
     f1   0 8192 10 1                  ; Sine
     f5  0 512  20 2                   ; Hanning window 
-    f10 0 131072 1  "ZEW.aif" 0 0 0 
     i99  0 7000                       ; start mixer, delay, reverb
   `);
 
@@ -186,11 +156,6 @@ triggerNote = function(dur, dens, pitch, pan, type){
        i1 0 ${dur} ${dens} ${pitch} ${pan}
       ;       i2 0 ${dur} ${pitch/4}
     `);
-    //  csound.ReadScore(Csound, `
-    //    ; Start Sine Box
-    //    i2 0 ${dur} ${pitch/2} ${pan}
-    // `);
-
   }else if(type == "neg"){
          csound.ReadScore(Csound, `
        ; Start Sine Box
