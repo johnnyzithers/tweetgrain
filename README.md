@@ -7,3 +7,5 @@ Before installing dependencies, you must follow the instructions here:
 Boost c++ headers must be installed. Then run `npm install`, and the csound-api should install. 
 
 To use, run `node app.js` and navigate to the port reported. 
+
+![Screenshot](screenshot.png)
